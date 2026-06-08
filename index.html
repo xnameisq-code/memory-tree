@@ -446,13 +446,23 @@
             submitModal.innerText = "로켓 속도로 저장 중... 🚀";
             submitModal.disabled = true;
 
-            try {
+try {
                 const compressedFile = await compressImage(file);
                 const uniqueFileName = new Date().getTime() + "_compressed.jpg";
                 const storageReference = ref(storage, 'memory_images/' + uniqueFileName);
                 
-                await uploadBytes(storageReference, compressedFile);
+                // --- ✨ 여기를 수정합니다! (명찰 달아주기) ---
+                // 기존: await uploadBytes(storageReference, compressedFile);
+                
+                const metadata = {
+                    contentType: 'image/jpeg',
+                };
+                await uploadBytes(storageReference, compressedFile, metadata);
+                // ---------------------------------------------
+
                 const imageUrl = await getDownloadURL(storageReference);
+
+                // ... (이하 동일)
 
                 await addDoc(collection(db, "photos"), {
                     imageUrl: imageUrl,
