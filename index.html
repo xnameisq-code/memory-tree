@@ -500,7 +500,7 @@ try {
             if (e.target === detailOverlay) detailOverlay.style.display = 'none';
         });
 
-        // 🌟 파이어베이스 실시간 동기화 및 나뭇잎 생성
+// 🌟 파이어베이스 실시간 동기화 및 나뭇잎 생성 (위치 수정 완료 버젼)
         onSnapshot(collection(db, "photos"), (snapshot) => {
             leafLayer.innerHTML = ''; // 기존 나뭇잎 초기화
 
@@ -510,13 +510,30 @@ try {
                 const leaf = document.createElement('i');
                 leaf.className = 'fa-solid fa-leaf leaf';
                 
-                // 나무 범위 내에 랜덤 배치 (15~75% / 20~80%)
-                const randomTop = Math.floor(Math.random() * 60) + 15; 
-                const randomLeft = Math.floor(Math.random() * 60) + 20; 
+                // 1. 나뭇가지가 있는 '안전 구역(Zone)' 5곳을 설정합니다. (기둥과 캐릭터 회피)
+                const branchZones = [
+                    { topMin: 5, topMax: 30, leftMin: 35, leftMax: 65 },   // 상단 중앙 가지
+                    { topMin: 15, topMax: 45, leftMin: 10, leftMax: 35 },  // 좌측 상단 가지
+                    { topMin: 15, topMax: 45, leftMin: 65, leftMax: 90 },  // 우측 상단 가지
+                    { topMin: 40, topMax: 60, leftMin: 5, leftMax: 30 },   // 좌측 하단 가지
+                    { topMin: 40, topMax: 60, leftMin: 70, leftMax: 95 }   // 우측 하단 가지
+                ];
+
+                // 2. 5개의 구역 중 하나를 랜덤으로 선택합니다.
+                const randomZone = branchZones[Math.floor(Math.random() * branchZones.length)];
+                
+                // 3. 선택된 구역 안에서만 랜덤 좌표를 생성합니다.
+                const randomTop = Math.floor(Math.random() * (randomZone.topMax - randomZone.topMin + 1)) + randomZone.topMin; 
+                const randomLeft = Math.floor(Math.random() * (randomZone.leftMax - randomZone.leftMin + 1)) + randomZone.leftMin; 
+                
+                // 4. 나뭇잎의 각도도 살짝씩 다르게 랜덤으로 틀어줍니다 (자연스러움 추가!)
+                const randomRotation = Math.floor(Math.random() * 60) - 30; // -30도 ~ +30도
                 
                 leaf.style.top = `${randomTop}%`;
                 leaf.style.left = `${randomLeft}%`;
+                leaf.style.transform = `rotate(${randomRotation}deg)`;
 
+                // 나뭇잎 클릭 시 상세 팝업창 띄우기
                 leaf.addEventListener('click', () => {
                     detailImg.src = data.imageUrl;
                     detailContent.innerText = data.content;
@@ -531,10 +548,10 @@ try {
                     detailOverlay.style.display = 'flex';
                 });
 
+                // 마우스 호버 시 회전 풀리지 않게 스타일 인라인 추가
+                leaf.onmouseover = () => leaf.style.transform = `scale(1.4) rotate(${randomRotation}deg)`;
+                leaf.onmouseout = () => leaf.style.transform = `scale(1) rotate(${randomRotation}deg)`;
+
                 leafLayer.appendChild(leaf);
             });
         });
-
-    </script>
-</body>
-</html>
