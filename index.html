@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>우리의 추억 나무</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Chiron+Sung+HK:wght@300;400;700&family=Noto+Sans+KR:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #fff0f5; 
+            font-family: 'Chiron Sung HK', 'Noto Sans KR', sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .tree-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            height: 80vh;
+            min-height: 600px;
+            margin-top: 5vh;
+            display: flex;
+            justify-content: center;
+        }
+
+        .tree-image {
+            position: absolute;
+            bottom: 120px;
+            max-height: 80%;
+            width: auto;
+            z-index: 1;
+        }
+
+        .bottom-image {
+            position: absolute;
+            bottom: 0;
+            max-width: 300px;
+            height: auto;
+            z-index: 2;
+        }
+
+        .leaf-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        .ui-controls {
+            margin-top: 20px;
+            z-index: 10;
+        }
+
+        .upload-btn {
+            background-color: #fb92ac; 
+            color: #ffffff;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(251, 146, 172, 0.4);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+
+        .upload-btn:hover {
+            background-color: #f472b6;
+            transform: translateY(-3px);
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.4); 
+            backdrop-filter: blur(5px); 
+            z-index: 100;
+            display: none; 
+            justify-content: center;
+            align-items: center;
+        }
+
+        .upload-modal {
+            background-color: #fff8ee; 
+            border-radius: 30px;
+            padding: 40px;
+            width: 90%;
+            max-width: 600px;
+            z-index: 101;
+            box-shadow: 0 10px 30px rgba(251, 113, 133, 0.2);
+            border: 2px solid #fce7f3; 
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .modal-header {
+            width: 100%;
+            text-align: center;
+            margin-bottom: 25px;
+            border-bottom: 2px solid #fce7f3;
+            padding-bottom: 10px;
+        }
+
+        .modal-header h2 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #831843;
+            margin: 0;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 24px;
+            color: #fb92ac;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #f472b6;
+        }
+
+        .modal-body {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .preview-container {
+            width: 100%;
+            text-align: center;
+        }
+
+        .preview-card {
+            background-color: white;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            display: inline-block;
+            border: 1px solid #fce7f3;
+            position: relative;
+            max-width: 90%;
+        }
+
+        .preview-card img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+        }
+
+        .file-input {
+            display: none;
+        }
+
+        .custom-file-upload {
+            background-color: #fce7f3; 
+            color: #831843;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .custom-file-upload:hover {
+            background-color: #fde2e4;
+        }
+
+        .memo-textarea {
+            width: 100%;
+            height: 100px;
+            border-radius: 20px;
+            border: 1px solid #fbcfe8;
+            padding: 15px;
+            background-color: #fff8ee;
+            color: #475569;
+            font-family: 'Chiron Sung HK', 'Noto Sans KR', sans-serif;
+            font-size: 16px;
+            resize: none;
+            box-sizing: border-box;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .memo-textarea:focus {
+            outline: none;
+            border-color: #fb92ac;
+        }
+
+        .modal-footer {
+            margin-top: 30px;
+            display: flex;
+            gap: 15px;
+            width: 100%;
+            justify-content: flex-end;
+        }
+
+        .modal-btn {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        .modal-btn-submit {
+            background-color: #fb92ac;
+            color: white;
+            font-weight: 700;
+        }
+
+        .modal-btn-alt {
+            background-color: #e2e8f0;
+            color: #475569;
+        }
+
+        .modal-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* 나뭇잎 디자인 */
+        .leaf {
+            position: absolute;
+            font-size: 32px;
+            color: #6ee7b7; 
+            cursor: pointer;
+            transition: transform 0.3s, filter 0.3s;
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.1));
+            pointer-events: auto; 
+        }
+
+        .leaf:hover {
+            transform: scale(1.4);
+            filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2)) brightness(1.1);
+        }
+
+        /* 상세 보기 모달 */
+        .detail-modal {
+            background-color: #fff8ee;
+            border-radius: 20px;
+            padding: 30px;
+            width: 90%;
+            max-width: 400px;
+            z-index: 101;
+            box-shadow: 0 10px 30px rgba(5, 150, 105, 0.15);
+            border: 2px solid #a7f3d0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            position: relative;
+        }
+
+        .detail-modal img {
+            max-width: 100%;
+            max-height: 300px;
+            object-fit: contain;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #fce7f3;
+        }
+
+        .detail-date {
+            font-size: 14px;
+            color: #94a3b8;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+
+        .detail-content {
+            font-size: 18px;
+            color: #475569;
+            text-align: center;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="tree-container">
+        <img src="https://i.imgur.com/k9zqC2I.png" alt="추억 나무" class="tree-image">
+        <img src="https://i.imgur.com/COzqP8e.png" alt="나무 밑 장식" class="bottom-image">
+        <div class="leaf-layer" id="leafLayer"></div>
+    </div>
+
+    <div class="ui-controls">
+        <button class="upload-btn" id="uploadBtn">추억 남기기</button>
+    </div>
+
+    <div class="modal-overlay" id="uploadOverlay">
+        <div class="upload-modal" id="uploadModal">
+            <i class="fa-solid fa-xmark close-modal" id="closeModal"></i> 
+            <div class="modal-header">
+                <h2>추억 남기기 <i class="fa-solid fa-heart" style="color: #db2777; font-size: 20px;"></i></h2>
+            </div>
+            
+            <div class="modal-body">
+                <div class="preview-container">
+                    <div class="preview-card" id="previewCard">
+                        <img src="" alt="미리보기" id="previewImg" style="display: none;">
+                        <label for="photoInput" class="custom-file-upload">
+                            <i class="fa-solid fa-image"></i> 사진 선택
+                        </label>
+                        <input type="file" id="photoInput" class="file-input" accept="image/*">
+                    </div>
+                </div>
+                
+                <textarea class="memo-textarea" id="memoText" placeholder="그날의 추억을 적어주세요..."></textarea>
+            </div>
+            
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-alt" id="cancelModal">취소</button>
+                <button class="modal-btn modal-btn-submit" id="submitModal">등록</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-overlay" id="detailOverlay" style="display: none;">
+        <div class="detail-modal">
+            <i class="fa-solid fa-xmark close-modal" id="closeDetailModal" style="color: #059669;"></i>
+            
+            <img id="detailImg" src="" alt="추억 사진">
+            <div class="detail-date" id="detailDate"></div>
+            <div class="detail-content" id="detailContent"></div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+        import { getFirestore, collection, addDoc, onSnapshot, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+        import { getStorage, ref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyBiLYcCv2dV8o6RJnk34iJHZ4mh49fLQcA",
+            authDomain: "memory-tree-4b124.firebaseapp.com",
+            projectId: "memory-tree-4b124",
+            storageBucket: "memory-tree-4b124.firebasestorage.app",
+            messagingSenderId: "959673774059",
+            appId: "1:959673774059:web:910d7712a394dae63d33ae",
+            measurementId: "G-857G8W3ET1"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const storage = getStorage(app);
+
+        // UI 요소들 가져오기
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadOverlay = document.getElementById('uploadOverlay');
+        const closeModal = document.getElementById('closeModal');
+        const cancelModal = document.getElementById('cancelModal');
+        const photoInput = document.getElementById('photoInput');
+        const previewImg = document.getElementById('previewImg');
+        const memoText = document.getElementById('memoText');
+        const submitModal = document.getElementById('submitModal');
+
+        const toggleModal = (show) => {
+            uploadOverlay.style.display = show ? 'flex' : 'none';
+        }
+
+        uploadBtn.addEventListener('click', () => toggleModal(true));
+        closeModal.addEventListener('click', () => toggleModal(false));
+        cancelModal.addEventListener('click', () => toggleModal(false));
+        uploadOverlay.addEventListener('click', (e) => {
+            if (e.target === uploadOverlay) toggleModal(false);
+        });
+
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    previewImg.src = event.target.result;
+                    previewImg.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        // 이미지 압축 마법사 함수
+        const compressImage = (file, maxWidth = 800, quality = 0.7) => {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = (event) => {
+                    const img = new Image();
+                    img.src = event.target.result;
+                    img.onload = () => {
+                        const canvas = document.createElement('canvas');
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxWidth) {
+                            height = Math.round((height * maxWidth) / width);
+                            width = maxWidth;
+                        }
+
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        canvas.toBlob((blob) => {
+                            resolve(blob);
+                        }, 'image/jpeg', quality);
+                    };
+                };
+            });
+        };
+
+        submitModal.addEventListener('click', async () => {
+            const file = photoInput.files[0];
+            const text = memoText.value;
+
+            if (!file || !text) {
+                alert("사진과 내용을 모두 입력해주세요!");
+                return;
+            }
+
+            const originalBtnText = submitModal.innerText;
+            submitModal.innerText = "로켓 속도로 저장 중... 🚀";
+            submitModal.disabled = true;
+
+            try {
+                const compressedFile = await compressImage(file);
+                const uniqueFileName = new Date().getTime() + "_compressed.jpg";
+                const storageReference = ref(storage, 'memory_images/' + uniqueFileName);
+                
+                await uploadBytes(storageReference, compressedFile);
+                const imageUrl = await getDownloadURL(storageReference);
+
+                await addDoc(collection(db, "photos"), {
+                    imageUrl: imageUrl,
+                    content: text,
+                    createdAt: serverTimestamp()
+                });
+
+                alert("추억이 저장되었습니다! 🌸");
+
+                photoInput.value = "";
+                previewImg.src = "";
+                previewImg.style.display = "none";
+                memoText.value = "";
+                toggleModal(false);
+
+            } catch (error) {
+                console.error("업로드 에러 발생:", error);
+                alert("앗, 저장 중 오류가 발생했어요. 다시 시도해주세요.");
+            } finally {
+                submitModal.innerText = originalBtnText;
+                submitModal.disabled = false;
+            }
+        });
+
+        // 상세 보기 로직
+        const detailOverlay = document.getElementById('detailOverlay');
+        const closeDetailModal = document.getElementById('closeDetailModal');
+        const detailImg = document.getElementById('detailImg');
+        const detailDate = document.getElementById('detailDate');
+        const detailContent = document.getElementById('detailContent');
+        const leafLayer = document.getElementById('leafLayer');
+
+        closeDetailModal.addEventListener('click', () => detailOverlay.style.display = 'none');
+        detailOverlay.addEventListener('click', (e) => {
+            if (e.target === detailOverlay) detailOverlay.style.display = 'none';
+        });
+
+        // 🌟 파이어베이스 실시간 동기화 및 나뭇잎 생성
+        onSnapshot(collection(db, "photos"), (snapshot) => {
+            leafLayer.innerHTML = ''; // 기존 나뭇잎 초기화
+
+            snapshot.forEach((doc) => {
+                const data = doc.data();
+
+                const leaf = document.createElement('i');
+                leaf.className = 'fa-solid fa-leaf leaf';
+                
+                // 나무 범위 내에 랜덤 배치 (15~75% / 20~80%)
+                const randomTop = Math.floor(Math.random() * 60) + 15; 
+                const randomLeft = Math.floor(Math.random() * 60) + 20; 
+                
+                leaf.style.top = `${randomTop}%`;
+                leaf.style.left = `${randomLeft}%`;
+
+                leaf.addEventListener('click', () => {
+                    detailImg.src = data.imageUrl;
+                    detailContent.innerText = data.content;
+                    
+                    if (data.createdAt) {
+                        const date = data.createdAt.toDate();
+                        detailDate.innerText = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일`;
+                    } else {
+                        detailDate.innerText = "방금 전 기록됨";
+                    }
+
+                    detailOverlay.style.display = 'flex';
+                });
+
+                leafLayer.appendChild(leaf);
+            });
+        });
+
+    </script>
+</body>
+</html>
